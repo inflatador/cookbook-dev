@@ -1,0 +1,6 @@
+---
+
+# webproxy is required for outbound HTTP connections
+# see https://wikitech.wikimedia.org/wiki/HTTP_proxy for details
+
+webproxy_host: "webproxy.eqiad.wmnet"

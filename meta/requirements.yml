@@ -1,0 +1,7 @@
+---
+roles: []
+
+collections:
+  - name: community.crypto
+    version: latest
+    source: https://galaxy.ansible.com

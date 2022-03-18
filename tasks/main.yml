@@ -1,62 +1,82 @@
----
+# ---
+#
+# # Setting up dev environment using
+# # https://wikitech.wikimedia.org/wiki/Spicerack/Cookbooks
+# # as guide
+#
+# - name: add bash_profile dotfile
+#   copy:
+#     content: |
+#               # .bash_profile
+#
+#               # Get the aliases and functions
+#               if [ -f ~/.bashrc ]; then
+#               	. ~/.bashrc
+#               fi
+#
+#               # User specific environment and startup programs
+#     dest: ~/.bash_profile
+#     state: present
+#
+# - name: set PATH in bashrc
+#   lineinfile:
+#     path: ~/.bashrc
+#     state: present
+#     create: yes
+#     line: "{{ item }}"
+#   loop:
+#     -  "export PATH=${PATH}:~/.local/bin/"
+#
+# - name: install python lib dependencies
+#   pip:
+#     name: tox
+#   environment:
+#     HTTP_PROXY: "http://{{ webproxy_host }}:8080"
+#     HTTPS_PROXY: "http://{{ webproxy_host }}:8080"
+#
+# - name: create wmf subdir in home folder
+#   file:
+#     path: ~/wmf
+#     state: directory
+#
+# - name: clone spicerack repo
+#   git:
+#     repo: https://github.com/wikimedia/operations-software-spicerack.git
+#     dest: ~/wmf/spicerack
+#   environment:
+#     http_proxy: "http://{{ webproxy_host }}:8080"
+#     https_proxy: "http://{{ webproxy_host }}:8080"
+#   ignore_errors: yes
+#
+# - name: clone cookbooks repo
+#   git:
+#     repo: https://github.com/wikimedia/operations-cookbooks.git
+#     dest: ~/wmf/spicerack/cookbooks
+#   environment:
+#     http_proxy: "http://{{ webproxy_host }}:8080"
+#     https_proxy: "http://{{ webproxy_host }}:8080"
+#   ignore_errors: yes
+#
+# ##FIXME: don't hardcode python version
+# - name: setup virtualenv via tox
+#   command: 'tox -e py39-unit'
+#   args:
+#     chdir: ~/wmf/spicerack
+#     creates: ~/wmf/spicerack/.tox/py39-tests
+#
+# - name: create config.yaml
+#   copy:
+#     content: |
+#               cookbooks_base_dir: /home/{{ ansible_user }}/wmf/spicerack/cookbooks
+#               logs_base_dir:  /home/{{ ansible_user }}/wmf/spicerack/logs
+#     dest:  ~/config.yaml
 
-- name: set proxy information in bashrc
-  lineinfile:
-    path: ~/.bashrc
-    state: present
-    create: yes
-    line: "{{ item }}"
-  loop:
-    - "export http_proxy=http://{{ webproxy_host }}:8080"
-    - "export https_proxy=http://{{ webproxy_host }}:8080"
+- name: Get information on public key
+  community.crypto.x509_certificate_info:
+    path: "/home/bking/wmf/spicerack/.tox/py39-tests/lib/python3.9/site-packages/certifi/cacert.pem"
+    # path: "/usr/share/ca-certificates/wikimedia/Wikimedia_Internal_Root_CA.crt"
+  register: certs
 
-- name: add bash_profile dotfile
-  copy:
-    content: |
-              # .bash_profile
-
-              # Get the aliases and functions
-              if [ -f ~/.bashrc ]; then
-              	. ~/.bashrc
-              fi
-
-              # User specific environment and startup programs
-    dest: ~/.bash_profile
-    state: present
-
-- name: set PATH in bashrc
-  lineinfile:
-    path: ~/.bashrc
-    state: present
-    create: yes
-    line: "{{ item }}"
-  loop:
-    -  "export PATH=${PATH}:~/.local/bin/"
-
-- name: install python lib dependencies
-  pip:
-    name: tox
-  environment:
-    HTTP_PROXY: "http://{{ webproxy_host }}:8080"
-    HTTPS_PROXY: "http://{{ webproxy_host }}:8080"
-
-- name: create wmf subdir in home folder
-  file:
-    path: ~/wmf
-    state: directory
-
-- name: clone spicerack repo
-  git:
-    repo: https://github.com/wikimedia/operations-software-spicerack.git
-    dest: ~/wmf/spicerack
-  environment:
-    http_proxy: "http://{{ webproxy_host }}:8080"
-    https_proxy: "http://{{ webproxy_host }}:8080"
-
-- name: clone cookbooks repo
-  git:
-    repo: https://github.com/wikimedia/operations-cookbooks.git
-    dest: ~/wmf/spicerack/cookbooks
-  environment:
-    http_proxy: "http://{{ webproxy_host }}:8080"
-    https_proxy: "http://{{ webproxy_host }}:8080"
+- name: show cert info
+  debug:
+    var: certs
